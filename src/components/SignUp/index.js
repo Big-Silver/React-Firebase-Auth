@@ -5,9 +5,11 @@ import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
 
 const SignUpPage = () => (
-  <div>
-    <h1>SignUp</h1>
-    <SignUpForm />
+  <div className="auth-wrapper">
+    <div className="auth-inner">
+      <h1>SignUp</h1>
+      <SignUpForm />
+    </div>
   </div>
 );
 const INITIAL_STATE = {
@@ -58,38 +60,62 @@ class SignUpFormBase extends Component {
       username === "";
     return (
       <form onSubmit={this.onSubmit}>
-        <input
-          name="username"
-          value={username}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Full Name"
-        />
-        <input
-          name="email"
-          value={email}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Email Address"
-        />
-        <input
-          name="passwordOne"
-          value={passwordOne}
-          onChange={this.onChange}
-          type="password"
-          placeholder="Password"
-        />
-        <input
-          name="passwordTwo"
-          value={passwordTwo}
-          onChange={this.onChange}
-          type="password"
-          placeholder="Confirm Password"
-        />
-        <button disabled={isInvalid} type="submit">
+        <div className="form-group">
+          <label>Full Name</label>
+          <input
+            name="username"
+            value={username}
+            onChange={this.onChange}
+            type="text"
+            className="form-control"
+            placeholder="Full Name"
+          />
+        </div>
+        <div className="form-group">
+          <label>Email Address</label>
+          <input
+            name="email"
+            value={email}
+            onChange={this.onChange}
+            type="text"
+            className="form-control"
+            placeholder="Email Address"
+          />
+        </div>
+        <div className="form-group">
+          <label>Password</label>
+          <input
+            name="passwordOne"
+            value={passwordOne}
+            onChange={this.onChange}
+            type="password"
+            className="form-control"
+            placeholder="Password"
+          />
+        </div>
+        <div className="form-group">
+          <label>Confirm Password</label>
+          <input
+            name="passwordTwo"
+            value={passwordTwo}
+            onChange={this.onChange}
+            type="password"
+            className="form-control"
+            placeholder="Confirm Password"
+          />
+        </div>
+
+        <button
+          disabled={isInvalid}
+          type="submit"
+          className="btn btn-primary btn-block"
+        >
           Sign Up
         </button>
         {error && <p>{error.message}</p>}
+        <p className="forgot-password text-right">
+          Already registered <Link to={ROUTES.SIGN_IN}>sign in?</Link>
+        </p>
       </form>
     );
   }
