@@ -18,12 +18,12 @@ const NavigationAuth = () => (
 			<Link className="navbar-brand" to={ROUTES.LANDING}>React</Link>
 			<div className="collapse navbar-collapse" id="navbarTogglerDemo02">
 				<ul className="navbar-nav ml-auto">
-					<li className="nav-item">
+					{/* <li className="nav-item">
 						<Link className="nav-link" to={ROUTES.ACCOUNT}>Account</Link>
 					</li>
 					<li className="nav-item">
 						<Link className="nav-link" to={ROUTES.ADMIN}>Admin</Link>
-					</li>
+					</li> */}
 					<li className="nav-item">
 						<SignOutButton />
 					</li>

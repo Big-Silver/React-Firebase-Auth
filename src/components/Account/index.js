@@ -5,17 +5,19 @@ import { PasswordChangeForm } from "../PasswordChange";
 
 const AccountPage = () => (
   <AuthUserContext.Consumer>
-    {authUser => (
-      <div className="auth-wrapper">
-        <div className="auth-inner">
-          <h1>Account: {authUser.email}</h1>
-          {/* <PasswordForgetForm /> */}
-          <PasswordChangeForm />
+    {(authUser) => (
+      <div className="auth-content">
+        <div className="auth-wrapper">
+          <div className="auth-inner">
+            <h1>Account: {authUser.email}</h1>
+            {/* <PasswordForgetForm /> */}
+            <PasswordChangeForm />
+          </div>
         </div>
       </div>
     )}
   </AuthUserContext.Consumer>
 );
-const condition = authUser => !!authUser;
+const condition = (authUser) => !!authUser;
 
 export default withAuthorization(condition)(AccountPage);

@@ -15,26 +15,39 @@ class AdminPage extends Component {
   }
 
   componentDidMount() {
-		console.log('@@@@@@@@@@@@@@@@@@@@@@')
-		this.setState({ loading: true });
-    this.props.firebase.users().on("value", snapshot => {
-      const usersObject = snapshot.val();
-      const usersList = Object.keys(usersObject).map(key => ({
-        ...usersObject[key],
-        uid: key
-      }));
+    this.setState({ loading: true });
+    this.props.firebase.store.collection('users').get().then(snapshot => {
+      var usersList = [];
+      snapshot.docs.forEach((doc, i) => {
+        usersList.push({
+          uid: i,
+          ...doc.data()
+        });
+      })
       this.setState({
         users: usersList,
         loading: false
-      });
+      })
     });
+    // this.props.firebase.users.subscribe(snapshot => {
+    //   console.log('@@@@@@@@@@@@@@@ users : ', snapshot)
+    //   const usersObject = snapshot.val();
+    //   const usersList = Object.keys(usersObject).map(key => ({
+    //     ...usersObject[key],
+    //     uid: key
+    //   }));
+    //   this.setState({
+    //     users: usersList,
+    //     loading: false
+    //   });
+    // });
   }
 
   render() {
     const { users, loading } = this.state;
 
     return (
-      <div>
+      <div className="auth-content">
         <h1>Admin</h1>
         {loading && <div>Loading ...</div>}
         <UserList users={users} />
