@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
+import { AuthUserContext, withAuthorization } from "../Session";
 import { withFirebase } from "../Firebase";
 
 class AdminPage extends Component {
@@ -6,7 +8,19 @@ class AdminPage extends Component {
     super(props);
     this.state = {
       loading: false,
-      users: []
+      users: [],
+      options: {
+        afterDeleteRow: this.onAfterDeleteRow,
+        afterInsertRow: this.onAfterInsertRow,
+      },
+      selectRowProp: {
+        mode: "checkbox",
+      },
+      cellEditProp: {
+        mode: "click",
+        blurToSave: true,
+        afterSaveCell: this.onAfterSaveCell,
+      },
     };
   }
 
@@ -15,63 +29,115 @@ class AdminPage extends Component {
   }
 
   componentDidMount() {
-    this.setState({ loading: true });
-    this.props.firebase.store.collection('users').get().then(snapshot => {
-      var usersList = [];
-      snapshot.docs.forEach((doc, i) => {
-        usersList.push({
-          uid: i,
-          ...doc.data()
-        });
-      })
-      this.setState({
-        users: usersList,
-        loading: false
-      })
+    this.setState({
+      loading: true,
     });
-    // this.props.firebase.users.subscribe(snapshot => {
-    //   console.log('@@@@@@@@@@@@@@@ users : ', snapshot)
-    //   const usersObject = snapshot.val();
-    //   const usersList = Object.keys(usersObject).map(key => ({
-    //     ...usersObject[key],
-    //     uid: key
-    //   }));
-    //   this.setState({
-    //     users: usersList,
-    //     loading: false
-    //   });
-    // });
+    this.props.firebase.store
+      .collection("users")
+      .get()
+      .then((snapshot) => {
+        var usersList = [];
+        snapshot.docs.forEach((doc, i) => {
+          usersList.push({
+            id: i,
+            uuid: doc.id,
+            ...doc.data(),
+          });
+        });
+        console.log(usersList);
+        this.setState({
+          users: usersList,
+          loading: false,
+        });
+      });
   }
 
+  onAfterDeleteRow = (event) => {
+    let users = this.state.users;
+    event.map((e, i) => {
+      this.props.firebase.store.collection("users").doc(users[e].uuid).delete();
+    });
+    this.props.firebase.store
+      .collection("users")
+      .get()
+      .then((snapshot) => {
+        var usersList = [];
+        snapshot.docs.forEach((doc, i) => {
+          usersList.push({
+            id: i,
+            uuid: doc.id,
+            ...doc.data(),
+          });
+        });
+        this.setState({
+          users: usersList,
+        });
+      });
+  };
+
+  onAfterInsertRow = (event) => {
+    let user = {
+      username: event.username,
+      email: event.email,
+    };
+    this.props.firebase.store
+      .collection("users")
+      .add(user)
+      .then((ref) => {
+        user.uuid = ref.id;
+        user.id = this.state.users.length;
+        let users = this.state.users;
+        users.push(user);
+        this.setState({
+          users: users,
+        });
+      });
+  };
+
+  onAfterSaveCell = (event) => {
+    let users = this.state.users;
+    let user = {
+      email: event.email,
+      username: event.username,
+      uuid: event.uuid,
+    };
+    this.props.firebase.store
+      .collection("users")
+      .doc(users[event.id].uuid)
+      .set(user);
+    users[event.id] = event;
+    this.setState({ users });
+  };
+
   render() {
-    const { users, loading } = this.state;
+    const { users, loading, selectRowProp, cellEditProp, options } = this.state;
 
     return (
-      <div className="auth-content">
-        <h1>Admin</h1>
-        {loading && <div>Loading ...</div>}
-        <UserList users={users} />
-      </div>
+      <AuthUserContext.Consumer>
+        {(authUser) => (
+          <div className="auth-content p-5">
+            <h1>Admin</h1>
+            {loading && <div>Loading ...</div>}
+            <BootstrapTable
+              data={users}
+              insertRow={true}
+              deleteRow={true}
+              selectRow={selectRowProp}
+              cellEdit={cellEditProp}
+              options={options}
+            >
+              <TableHeaderColumn dataField="id" isKey={true}>
+                No
+              </TableHeaderColumn>
+              <TableHeaderColumn dataField="username">Name</TableHeaderColumn>
+              <TableHeaderColumn dataField="email">Email</TableHeaderColumn>
+            </BootstrapTable>
+          </div>
+        )}
+      </AuthUserContext.Consumer>
     );
   }
 }
 
-const UserList = ({ users }) => (
-  <ul>
-    {users.map(user => (
-      <li key={user.uid}>
-        <span>
-          <strong>ID:</strong> {user.uid}
-        </span>
-        <span>
-          <strong>E-Mail:</strong> {user.email}
-        </span>
-        <span>
-          <strong>Username:</strong> {user.username}
-        </span>
-      </li>
-    ))}
-  </ul>
-);
-
-export default withFirebase(AdminPage);
+const condition = (authUser) => !!authUser;
+export default withAuthorization(condition)(withFirebase(AdminPage));

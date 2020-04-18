@@ -1,4 +1,6 @@
 import React from "react";
+import { noneAuthorization } from "../Session";
+
 const Landing = () => (
   <div className="hero-container">
     <h1>React + Firebase</h1>
@@ -8,4 +10,6 @@ const Landing = () => (
     </a>
   </div>
 );
-export default Landing;
+
+const condition = (authUser) => !!authUser;
+export default noneAuthorization(condition)(Landing);

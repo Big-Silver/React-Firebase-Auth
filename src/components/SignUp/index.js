@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import { compose } from "recompose";
+import { noneAuthorization } from "../Session";
 import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
 
@@ -17,7 +18,7 @@ const INITIAL_STATE = {
   email: "",
   passwordOne: "",
   passwordTwo: "",
-  error: null
+  error: null,
 };
 
 class SignUpFormBase extends Component {
@@ -26,27 +27,27 @@ class SignUpFormBase extends Component {
 
     this.state = { ...INITIAL_STATE };
   }
-  onSubmit = event => {
+  onSubmit = (event) => {
     const { username, email, passwordOne } = this.state;
     this.props.firebase
       .doCreateUserWithEmailAndPassword(email, passwordOne)
-      .then(authUser => {
-        // Create a user in your Firebase realtime database 
+      .then((authUser) => {
+        // Create a user in your Firebase realtime database
         return this.props.firebase.user(authUser.user.uid).set({
           username,
-          email
+          email,
         });
       })
       .then(() => {
         this.setState({ ...INITIAL_STATE });
         this.props.history.push(ROUTES.HOME);
       })
-      .catch(error => {
+      .catch((error) => {
         this.setState({ error });
       });
     event.preventDefault();
   };
-  onChange = event => {
+  onChange = (event) => {
     this.setState({ [event.target.name]: event.target.value });
   };
 
@@ -129,5 +130,6 @@ const SignUpLink = () => (
 
 const SignUpForm = compose(withRouter, withFirebase)(SignUpFormBase);
 
-export default SignUpPage;
+const condition = (authUser) => !!authUser;
+export default noneAuthorization(condition)(SignUpPage);
 export { SignUpForm, SignUpLink };

@@ -10,13 +10,18 @@ const Sidebar = () => (
             <div className="sidebar">
                 <ul className="sidebar-menu">
                     <li className="nav-item">
-                        <Link className="nav-link sidebar-link mt-4 py-3" to={ROUTES.ACCOUNT}>
-                            <span class="title">Account</span>
+                        <Link className="nav-link sidebar-link mt-4 py-3" to={ROUTES.HOME}>
+                            <span className="title">Dashboard</span>
+                        </Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link sidebar-link py-3" to={ROUTES.ACCOUNT}>
+                            <span className="title">Account</span>
                         </Link>
                     </li>
                     <li className="nav-item">
                         <Link className="nav-link sidebar-link py-3" to={ROUTES.ADMIN}>
-                            <span class="title">Admin</span>
+                            <span className="title">Admin</span>
                         </Link>
                     </li>
                 </ul>

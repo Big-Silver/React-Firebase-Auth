@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
 import { compose } from "recompose";
+import { noneAuthorization } from "../Session";
 import { SignUpLink } from "../SignUp";
 import { PasswordForgetLink } from "../PasswordForget";
 import { withFirebase } from "../Firebase";
@@ -18,14 +19,14 @@ const SignInPage = () => (
 const INITIAL_STATE = {
   email: "",
   password: "",
-  error: null
+  error: null,
 };
 class SignInFormBase extends Component {
   constructor(props) {
     super(props);
     this.state = { ...INITIAL_STATE };
   }
-  onSubmit = event => {
+  onSubmit = (event) => {
     const { email, password } = this.state;
     this.props.firebase
       .doSignInWithEmailAndPassword(email, password)
@@ -33,12 +34,12 @@ class SignInFormBase extends Component {
         this.setState({ ...INITIAL_STATE });
         this.props.history.push(ROUTES.HOME);
       })
-      .catch(error => {
+      .catch((error) => {
         this.setState({ error });
       });
     event.preventDefault();
   };
-  onChange = event => {
+  onChange = (event) => {
     this.setState({ [event.target.name]: event.target.value });
   };
   render() {
@@ -81,5 +82,7 @@ class SignInFormBase extends Component {
   }
 }
 const SignInForm = compose(withRouter, withFirebase)(SignInFormBase);
-export default SignInPage;
+
+const condition = (authUser) => !!authUser;
+export default noneAuthorization(condition)(SignInPage);
 export { SignInForm };
