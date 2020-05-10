@@ -57,22 +57,24 @@ class AdminPage extends Component {
     event.map((e, i) => {
       this.props.firebase.store.collection("users").doc(users[e].uuid).delete();
     });
-    this.props.firebase.store
-      .collection("users")
-      .get()
-      .then((snapshot) => {
-        var usersList = [];
-        snapshot.docs.forEach((doc, i) => {
-          usersList.push({
-            id: i,
-            uuid: doc.id,
-            ...doc.data(),
+    setTimeout(() => {
+      this.props.firebase.store
+        .collection("users")
+        .get()
+        .then((snapshot) => {
+          var usersList = [];
+          snapshot.docs.forEach((doc, i) => {
+            usersList.push({
+              id: i,
+              uuid: doc.id,
+              ...doc.data(),
+            });
+          });
+          this.setState({
+            users: usersList,
           });
         });
-        this.setState({
-          users: usersList,
-        });
-      });
+    }, 1000);
   };
 
   onAfterInsertRow = (event) => {
