@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import { compose, withProps } from "recompose";
 import {
   withScriptjs,
@@ -28,23 +28,13 @@ const MapBase = compose(
   </GoogleMap>
 ));
 
-class CustomGoogleMap extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
-
-  render() {
-    const { data } = this.props;
-    return (
-      <div className="h-100 mt-3">
-        <p className="text-center">
-          You're in {data.lat} : {data.lng}
-        </p>
-        <MapBase data={data} />
-      </div>
-    );
-  }
+export default function CustomGoogleMap(props) {
+  return (
+    <div className="h-100 mt-3">
+      <p className="text-center">
+        You're in {props.data.lat} : {props.data.lng}
+      </p>
+      <MapBase data={props.data} />
+    </div>
+  );
 }
-
-export default CustomGoogleMap;
