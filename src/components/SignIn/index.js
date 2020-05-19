@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { withRouter } from "react-router-dom";
 import { compose } from "recompose";
 import { noneAuthorization } from "../Session";
@@ -16,71 +16,80 @@ const SignInPage = () => (
     </div>
   </div>
 );
-const INITIAL_STATE = {
-  email: "",
-  password: "",
-  error: null,
-};
-class SignInFormBase extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { ...INITIAL_STATE };
-  }
-  onSubmit = (event) => {
-    const { email, password } = this.state;
-    this.props.firebase
+
+function SignInFormBase(props) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+
+  function onSubmit(event) {
+    props.firebase
       .doSignInWithEmailAndPassword(email, password)
       .then(() => {
-        this.setState({ ...INITIAL_STATE });
-        this.props.history.push(ROUTES.HOME);
+        setEmail("");
+        setPassword("");
+        setError(null);
+        props.history.push(ROUTES.HOME);
       })
       .catch((error) => {
-        this.setState({ error });
+        setError(error);
       });
     event.preventDefault();
-  };
-  onChange = (event) => {
-    this.setState({ [event.target.name]: event.target.value });
-  };
-  render() {
-    const { email, password, error } = this.state;
-    const isInvalid = password === "" || email === "";
-    return (
-      <form onSubmit={this.onSubmit}>
-        <div className="form-group">
-          <label>Email address</label>
-          <input
-            name="email"
-            value={email}
-            onChange={this.onChange}
-            type="email"
-            className="form-control"
-            placeholder="Email Address"
-          />
-        </div>
-        <div className="form-group">
-          <label>Password</label>
-          <input
-            name="password"
-            value={password}
-            onChange={this.onChange}
-            type="password"
-            className="form-control"
-            placeholder="Password"
-          />
-        </div>
-        <button
-          disabled={isInvalid}
-          type="submit"
-          className="btn btn-primary btn-block"
-        >
-          Submit
-        </button>
-        {error && <p>{error.message}</p>}
-      </form>
-    );
   }
+
+  function onChange(event) {
+    switch (event.target.name) {
+      case "email":
+        setEmail(event.target.value);
+        break;
+      case "password":
+        setPassword(event.target.value);
+        break;
+      default:
+        return;
+    }
+  }
+
+  function isInvalid() {
+    return password === "" || email === "";
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <div className="form-group">
+        <label>Email address</label>
+        <input
+          name="email"
+          value={email}
+          onChange={onChange}
+          type="email"
+          className="form-control"
+          placeholder="Email Address"
+        />
+      </div>
+      <div className="form-group">
+        <label>Password</label>
+        <input
+          name="password"
+          value={password}
+          onChange={onChange}
+          type="password"
+          className="form-control"
+          placeholder="Password"
+        />
+      </div>
+      <button
+        disabled={isInvalid}
+        type="submit"
+        className="btn btn-primary btn-block"
+      >
+        Submit
+      </button>
+      {error && <p>{error.message}</p>}
+    </form>
+  );
 }
+
 const SignInForm = compose(withRouter, withFirebase)(SignInFormBase);
 
 const condition = (authUser) => !!authUser;
