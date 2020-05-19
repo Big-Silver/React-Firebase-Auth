@@ -1,64 +1,50 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 import { AuthUserContext, withAuthorization } from "../Session";
 import { withFirebase } from "../Firebase";
 
-class AdminPage extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loading: false,
-      users: [],
-      options: {
-        afterDeleteRow: this.onAfterDeleteRow,
-        afterInsertRow: this.onAfterInsertRow,
-      },
-      selectRowProp: {
-        mode: "checkbox",
-      },
-      cellEditProp: {
-        mode: "click",
-        blurToSave: true,
-        afterSaveCell: this.onAfterSaveCell,
-      },
-    };
-  }
+function AdminPage(props) {
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const options = {
+    afterDeleteRow: onAfterDeleteRow,
+    afterInsertRow: onAfterInsertRow,
+  };
+  const selectRowProp = {
+    mode: "checkbox",
+  };
+  const cellEditProp = {
+    mode: "click",
+    blurToSave: true,
+    afterSaveCell: onAfterSaveCell,
+  };
 
-  componentWillUnmount() {
-    this.props.firebase.users().off();
-  }
-
-  componentDidMount() {
-    this.setState({
-      loading: true,
-    });
-    this.props.firebase.store
-      .collection("users")
-      .get()
-      .then((snapshot) => {
-        var usersList = [];
-        snapshot.docs.forEach((doc, i) => {
-          usersList.push({
-            id: i,
-            uuid: doc.id,
-            ...doc.data(),
-          });
-        });
-        console.log(usersList);
-        this.setState({
-          users: usersList,
-          loading: false,
+  useEffect(() => {
+    setLoading(true);
+    function fetchUsers(snapshot) {
+      var usersList = [];
+      snapshot.docs.forEach((doc, i) => {
+        usersList.push({
+          id: i,
+          uuid: doc.id,
+          ...doc.data(),
         });
       });
-  }
+      setUsers(usersList);
+      setLoading(false);
+    }
+    props.firebase.store.collection("users").get().then(fetchUsers);
+    return () => {
+      props.firebase.users().off();
+    };
+  }, [props.firebase]);
 
-  onAfterDeleteRow = (event) => {
-    let users = this.state.users;
-    event.map((e, i) => {
-      this.props.firebase.store.collection("users").doc(users[e].uuid).delete();
+  function onAfterDeleteRow(event) {
+    event.map((e) => {
+      props.firebase.store.collection("users").doc(users[e].uuid).delete();
     });
     setTimeout(() => {
-      this.props.firebase.store
+      props.firebase.store
         .collection("users")
         .get()
         .then((snapshot) => {
@@ -70,75 +56,67 @@ class AdminPage extends Component {
               ...doc.data(),
             });
           });
-          this.setState({
-            users: usersList,
-          });
+          setUsers(usersList);
         });
     }, 1000);
-  };
+  }
 
-  onAfterInsertRow = (event) => {
-    let user = {
+  function onAfterInsertRow(event) {
+    const user = {
       username: event.username,
       email: event.email,
     };
-    this.props.firebase.store
+    props.firebase.store
       .collection("users")
       .add(user)
       .then((ref) => {
         user.uuid = ref.id;
-        user.id = this.state.users.length;
-        let users = this.state.users;
-        users.push(user);
-        this.setState({
-          users: users,
-        });
+        user.id = users.length;
+        var newUsers = users.slice();
+        newUsers.push(user);
+        console.log(users);
+        setUsers(newUsers);
       });
-  };
+  }
 
-  onAfterSaveCell = (event) => {
-    let users = this.state.users;
-    let user = {
+  function onAfterSaveCell(event) {
+    const user = {
       email: event.email,
       username: event.username,
       uuid: event.uuid,
     };
-    this.props.firebase.store
+    props.firebase.store
       .collection("users")
       .doc(users[event.id].uuid)
       .set(user);
     users[event.id] = event;
-    this.setState({ users });
-  };
-
-  render() {
-    const { users, loading, selectRowProp, cellEditProp, options } = this.state;
-
-    return (
-      <AuthUserContext.Consumer>
-        {(authUser) => (
-          <div className="auth-content p-5">
-            <h1>Admin</h1>
-            {loading && <div>Loading ...</div>}
-            <BootstrapTable
-              data={users}
-              insertRow={true}
-              deleteRow={true}
-              selectRow={selectRowProp}
-              cellEdit={cellEditProp}
-              options={options}
-            >
-              <TableHeaderColumn dataField="id" isKey={true}>
-                No
-              </TableHeaderColumn>
-              <TableHeaderColumn dataField="username">Name</TableHeaderColumn>
-              <TableHeaderColumn dataField="email">Email</TableHeaderColumn>
-            </BootstrapTable>
-          </div>
-        )}
-      </AuthUserContext.Consumer>
-    );
+    setUsers(users);
   }
+
+  return (
+    <AuthUserContext.Consumer>
+      {(authUser) => (
+        <div className="auth-content p-5">
+          <h1>Admin</h1>
+          {loading && <div>Loading ...</div>}
+          <BootstrapTable
+            data={users}
+            insertRow={true}
+            deleteRow={true}
+            selectRow={selectRowProp}
+            cellEdit={cellEditProp}
+            options={options}
+          >
+            <TableHeaderColumn dataField="id" isKey={true}>
+              No
+            </TableHeaderColumn>
+            <TableHeaderColumn dataField="username">Name</TableHeaderColumn>
+            <TableHeaderColumn dataField="email">Email</TableHeaderColumn>
+          </BootstrapTable>
+        </div>
+      )}
+    </AuthUserContext.Consumer>
+  );
 }
 
 const condition = (authUser) => !!authUser;
