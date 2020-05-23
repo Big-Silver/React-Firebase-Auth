@@ -120,7 +120,7 @@ function SignUpFormBase(props) {
       </div>
 
       <button
-        disabled={isInvalid}
+        disabled={isInvalid()}
         type="submit"
         className="btn btn-primary btn-block"
       >
